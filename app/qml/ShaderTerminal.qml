@@ -83,7 +83,7 @@ Item {
          // We progressively disable rasterization from 4x up to 2x resolution.
          property real rasterizationIntensity: Utils.smoothstep(2.0, 4.0, _screenDensity)
 
-         property real displayTerminalFrame: appSettings._frameMargin > 0 || appSettings.screenCurvature > 0
+         property real displayTerminalFrame: appSettings.showFrame
 
          property real time: timeManager.time
          property ShaderEffectSource noiseSource: noiseShaderSource
@@ -358,6 +358,7 @@ Item {
                  id: terminalFrame
                  blending: false
                  anchors.fill: parent
+                 runsOnDarkDesktopTheme: appSettings.runsOnDarkDesktopTheme
              }
          }
      }
@@ -384,6 +385,8 @@ Item {
          property real chromaColor: appSettings.chromaColor;
 
          property real rbgShift: (appSettings.rbgShift / width) * appSettings.totalFontScaling // TODO FILIPPO width here is wrong.
+
+         property bool showReflections: appSettings.showFrame
 
          property int rasterization: appSettings.rasterization
 
@@ -454,8 +457,11 @@ Item {
 
                  (screenCurvature !== 0 ? "
                      float distortion = dot(cc, cc) * screenCurvature;
-                     vec2 curvatureCoords = (qt_TexCoord0 - cc * (1.0 + distortion) * distortion);
-                     vec2 txt_coords = - 2.0 * curvatureCoords + 3.0 * step(vec2(0.0), curvatureCoords) * curvatureCoords - 3.0 * step(vec2(1.0), curvatureCoords) * curvatureCoords;"
+                     vec2 curvatureCoords = (qt_TexCoord0 - cc * (1.0 + distortion) * distortion);" +
+                     (showReflections ? "
+                         vec2 txt_coords = - 2.0 * curvatureCoords + 3.0 * step(vec2(0.0), curvatureCoords) * curvatureCoords - 3.0 * step(vec2(1.0), curvatureCoords) * curvatureCoords;"
+                     : "
+                         vec2 txt_coords = clamp(curvatureCoords, vec2(0.0), vec2(1.0));")
                  :"
                      vec2 txt_coords = qt_TexCoord0;") +
 
@@ -473,7 +479,7 @@ Item {
                   "txt_color += vec3(0.0001);" +
                   "float greyscale_color = rgb2grey(txt_color);" +
 
-                 (screenCurvature !== 0 ? "
+                 (screenCurvature !== 0 && showReflections ? "
                      float reflectionMask = sum2(step(vec2(0.0), curvatureCoords) - step(vec2(1.0), curvatureCoords));
                      reflectionMask = clamp(reflectionMask, 0.0, 1.0);"
                  :

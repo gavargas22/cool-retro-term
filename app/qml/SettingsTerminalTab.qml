@@ -114,7 +114,7 @@ ColumnLayout {
         }
     }
     GroupBox {
-        title: qsTr("Cursor")
+        title: qsTr("Behavior")
         Layout.fillWidth: true
         ColumnLayout {
             anchors.fill: parent
@@ -128,6 +128,17 @@ ColumnLayout {
                 target: blinkingCursor
                 property: "checked"
                 value: appSettings.blinkingCursor
+            }
+            CheckBox {
+                id: showTerminalSize
+                text: qsTr("Show dimensions on resize")
+                checked: appSettings.showTerminalSize
+                onCheckedChanged: appSettings.showTerminalSize = checked
+            }
+            Binding {
+                target: showTerminalSize
+                property: "checked"
+                value: appSettings.showTerminalSize
             }
         }
     }
@@ -165,6 +176,13 @@ ColumnLayout {
                     Layout.fillWidth: true
                     onColorSelected: appSettings._backgroundColor = color
                     color: appSettings._backgroundColor
+                }
+                ColorButton {
+                    name: qsTr("Frame")
+                    height: 50
+                    Layout.fillWidth: true
+                    onColorSelected: appSettings.frameColor = color
+                    color: appSettings.frameColor
                 }
             }
         }
